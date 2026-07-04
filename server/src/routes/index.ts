@@ -1,0 +1,32 @@
+import { Router } from 'express';
+import { dishesRouter } from './dishes.js';
+import { ingredientsRouter } from './ingredients.js';
+import { dishIngredientsRouter } from './dish-ingredients.js';
+import { tablesRouter } from './tables.js';
+import { suppliersRouter } from './suppliers.js';
+import { purchaseOrdersRouter } from './purchase-orders.js';
+import { inventoryRouter } from './inventory.js';
+import { ordersRouter } from './orders.js';
+import { paymentsRouter } from './payments.js';
+import { chatRouter } from './chat.js';
+import { dailyReportsRouter } from './daily-reports.js';
+import { lossRecordsRouter } from './loss-records.js';
+import { inventoryChecksRouter } from './inventory-checks.js';
+import { aiInsightsRouter } from './ai-insights.js';
+
+export const apiRouter = Router();
+
+apiRouter.use('/dishes', dishesRouter);
+apiRouter.use('/ingredients', ingredientsRouter);
+apiRouter.use('/dish-ingredients', dishIngredientsRouter);
+apiRouter.use('/tables', tablesRouter);
+apiRouter.use('/suppliers', suppliersRouter);
+apiRouter.use('/purchase-orders', purchaseOrdersRouter);
+apiRouter.use('/inventory', inventoryRouter);
+apiRouter.use('/orders', ordersRouter);
+apiRouter.use('/payments', paymentsRouter);
+apiRouter.use('/chat', chatRouter);
+apiRouter.use('/daily-reports', dailyReportsRouter);
+apiRouter.use('/loss-records', lossRecordsRouter);
+apiRouter.use('/inventory-checks', inventoryChecksRouter);
+apiRouter.use('/ai-insights', aiInsightsRouter);
