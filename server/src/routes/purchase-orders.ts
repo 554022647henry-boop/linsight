@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { getDb } from '../db/index.js';
 import type { PurchaseOrder, PurchaseItem } from '../types/index.js';
+import { recognizePurchaseOrder } from '../services/ai.js';
 
 export const purchaseOrdersRouter = Router();
 
@@ -118,57 +119,114 @@ purchaseOrdersRouter.post('/', (req: Request, res: Response) => {
   }
 });
 
-purchaseOrdersRouter.post('/recognize', (req: Request, res: Response) => {
+purchaseOrdersRouter.post('/recognize', async (req: Request, res: Response) => {
   const { source_type, content } = req.body;
-  
+
   if (!source_type || !content) {
     res.status(400).json({ error: 'validation_error', message: 'source_type and content are required' });
     return;
   }
-  
-  const mockItems = [
-    { ingredient_name: '牛肉', quantity: 15, unit: 'kg', unit_price: 42, amount: 630, ai_confidence: 0.95 },
-    { ingredient_name: '青菜', quantity: 30, unit: 'kg', unit_price: 4.5, amount: 135, ai_confidence: 0.92 },
-    { ingredient_name: '鸡蛋', quantity: 100, unit: '个', unit_price: 0.8, amount: 80, ai_confidence: 0.88 },
-  ];
-  
-  const totalAmount = mockItems.reduce((sum, item) => sum + item.amount, 0);
+
+  // 调用 LLM 解析进货单，失败则 fallback 到 mock
+  interface PendingItem {
+    ingredient_name: string;
+    quantity: number;
+    unit: string;
+    unit_price: number;
+    amount: number;
+    ai_confidence: number;
+  }
+  interface Anomaly {
+    item_id: number;
+    type: string;
+    message: string;
+  }
+
+  let items: PendingItem[];
+  let supplierName: string;
+  let anomalies: Anomaly[];
+
+  const aiResult = await recognizePurchaseOrder(content);
+  if (aiResult && aiResult.items.length > 0) {
+    supplierName = aiResult.supplier_name ?? 'AI 识别供应商';
+    items = aiResult.items.map((item) => {
+      const quantity = item.quantity ?? 0;
+      const unitPrice = item.unit_price ?? 0;
+      const hasNullField =
+        item.quantity === null || item.unit_price === null || item.unit === null;
+      return {
+        ingredient_name: item.name,
+        quantity,
+        unit: item.unit ?? 'kg',
+        unit_price: unitPrice,
+        amount: quantity * unitPrice,
+        ai_confidence: hasNullField ? 0.6 : 0.9
+      };
+    });
+
+    anomalies = [];
+    items.forEach((item, idx) => {
+      if (item.ai_confidence < 0.7) {
+        anomalies.push({
+          item_id: idx + 1,
+          type: 'confidence',
+          message: `${item.ingredient_name} 字段识别不完整，置信度低，建议人工确认`
+        });
+      }
+      if (item.amount > 500) {
+        anomalies.push({
+          item_id: idx + 1,
+          type: 'price',
+          message: `${item.ingredient_name} 金额 ${item.amount.toFixed(0)} 元，金额较高，建议核对`
+        });
+      }
+    });
+  } else {
+    // fallback：固定 mock 数据
+    supplierName = '供应商张老板';
+    items = [
+      { ingredient_name: '牛肉', quantity: 15, unit: 'kg', unit_price: 42, amount: 630, ai_confidence: 0.95 },
+      { ingredient_name: '青菜', quantity: 30, unit: 'kg', unit_price: 4.5, amount: 135, ai_confidence: 0.92 },
+      { ingredient_name: '鸡蛋', quantity: 100, unit: '个', unit_price: 0.8, amount: 80, ai_confidence: 0.88 },
+    ];
+    anomalies = [
+      { item_id: 1, type: 'price', message: '牛肉单价 42 元/kg，比上周均价高 8%' },
+      { item_id: 3, type: 'confidence', message: '鸡蛋置信度 0.88，建议确认数量' },
+    ];
+  }
+
+  const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
   const orderNo = generateOrderNo();
   const now = new Date().toISOString();
-  
+
   const db = getDb();
-  
+
   try {
     db.exec('BEGIN');
-    
+
     const insertStmt = db.prepare(`
       INSERT INTO purchase_orders (order_no, supplier_id, supplier_name, total_amount, source_type, ai_raw_text, status, created_at)
       VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)
     `);
-    
-    const info = insertStmt.run(orderNo, null, '供应商张老板', totalAmount, source_type, content, now);
+
+    const info = insertStmt.run(orderNo, null, supplierName, totalAmount, source_type, content, now);
     const orderId = info.lastInsertRowid as number;
-    
+
     const insertItemStmt = db.prepare(`
       INSERT INTO purchase_items (order_id, ingredient_id, ingredient_name, quantity, unit, unit_price, amount, ai_confidence, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    
-    for (const item of mockItems) {
+
+    for (const item of items) {
       insertItemStmt.run(orderId, null, item.ingredient_name, item.quantity, item.unit, item.unit_price, item.amount, item.ai_confidence, now);
     }
-    
+
     db.exec('COMMIT');
-    
+
     const order = db.prepare(`SELECT * FROM purchase_orders WHERE id = ?`).get(orderId) as unknown as PurchaseOrder;
-    const items = db.prepare(`SELECT * FROM purchase_items WHERE order_id = ?`).all(orderId) as unknown as PurchaseItem[];
-    
-    const anomalies = [
-      { item_id: 1, type: 'price', message: '牛肉单价 42 元/kg，比上周均价高 8%' },
-      { item_id: 3, type: 'confidence', message: '鸡蛋置信度 0.88，建议确认数量' },
-    ];
-    
-    res.status(201).json({ pending_order: { ...order, items }, anomalies });
+    const orderItems = db.prepare(`SELECT * FROM purchase_items WHERE order_id = ?`).all(orderId) as unknown as PurchaseItem[];
+
+    res.status(201).json({ pending_order: { ...order, items: orderItems }, anomalies });
     return;
   } catch (err) {
     db.exec('ROLLBACK');

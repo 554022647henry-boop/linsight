@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { getDb } from '../db/index.js';
 import type { DailyReport, TopDish, DishProfitDetail, ChatLog, AiInsight } from '../types/index.js';
+import { generateDailyReport, type DailyReportContext } from '../services/ai.js';
 
 export const dailyReportsRouter = Router();
 
@@ -56,7 +57,7 @@ dailyReportsRouter.get('/:date', (req: Request, res: Response<DailyReport | { er
   res.json(row);
 });
 
-dailyReportsRouter.post('/generate', (req: Request, res: Response<DailyReport>) => {
+dailyReportsRouter.post('/generate', async (req: Request, res: Response<DailyReport>) => {
   const db = getDb();
   const { date } = req.body as GenerateRequest;
 
@@ -157,14 +158,39 @@ dailyReportsRouter.post('/generate', (req: Request, res: Response<DailyReport>) 
   `);
   const reconcile_diff_amount = (reconcileDiffStmt.get(date) as unknown as { reconcile_diff_amount: number }).reconcile_diff_amount;
 
-  const ai_summary = `📊 ${date} 经营日报：营收 ${revenue.toFixed(0)} 元，毛利 ${gross_profit.toFixed(0)} 元，毛利率 ${gross_margin.toFixed(1)}%，净利 ${net_profit.toFixed(0)} 元。客流 ${customer_count} 人，客单价 ${avg_transaction.toFixed(0)} 元。`;
+  // 调用 LLM 生成日报摘要 + 建议，失败则 fallback 到模板
+  const ctx: DailyReportContext = {
+    date,
+    revenue,
+    food_cost,
+    gross_profit,
+    gross_margin,
+    net_profit,
+    customer_count,
+    avg_transaction,
+    loss_amount,
+    reconcile_diff_amount,
+    top_dishes,
+    dish_profit_detail
+  };
+  const aiResult = await generateDailyReport(ctx);
 
-  const suggestions: string[] = [];
-  if (gross_margin < 25) suggestions.push('毛利率偏低，建议优化菜品结构');
-  if (loss_amount > revenue * 0.1) suggestions.push('损耗过高，建议加强库存管理');
-  if (Math.abs(reconcile_diff_amount) > 100) suggestions.push(`对账差异 ${reconcile_diff_amount.toFixed(0)} 元，建议核查`);
-  if (suggestions.length === 0) suggestions.push('经营状况良好，继续保持');
-  const ai_suggestion = suggestions.join('；');
+  let ai_summary: string;
+  let ai_suggestion: string;
+  if (aiResult) {
+    ai_summary = aiResult.summary;
+    ai_suggestion = aiResult.suggestions.join('；');
+  } else {
+    ai_summary = `📊 ${date} 经营日报：营收 ${revenue.toFixed(0)} 元，毛利 ${gross_profit.toFixed(0)} 元，毛利率 ${gross_margin.toFixed(1)}%，净利 ${net_profit.toFixed(0)} 元。客流 ${customer_count} 人，客单价 ${avg_transaction.toFixed(0)} 元。`;
+
+    const suggestions: string[] = [];
+    if (net_profit < 0) suggestions.push(`当日亏损 ${Math.abs(net_profit).toFixed(0)} 元，建议提升客流或控制人工成本`);
+    if (gross_margin < 25 && net_profit >= 0) suggestions.push('毛利率偏低，建议优化菜品结构');
+    if (loss_amount > revenue * 0.1) suggestions.push('损耗过高，建议加强库存管理');
+    if (Math.abs(reconcile_diff_amount) > 100) suggestions.push(`对账差异 ${reconcile_diff_amount.toFixed(0)} 元，建议核查`);
+    if (suggestions.length === 0) suggestions.push('经营状况良好，继续保持');
+    ai_suggestion = suggestions.join('；');
+  }
 
   const existing = db.prepare('SELECT * FROM daily_reports WHERE report_date = ?').get(date);
   if (existing) {

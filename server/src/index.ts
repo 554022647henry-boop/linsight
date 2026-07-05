@@ -4,6 +4,13 @@ import morgan from 'morgan';
 import { apiRouter } from './routes/index.js';
 import { initSchema } from './db/index.js';
 
+// 启动时加载 .env（Node 22+ 内置，文件不存在时静默跳过）
+try {
+  process.loadEnvFile();
+} catch {
+  // .env 不存在，使用进程已有环境变量
+}
+
 // 启动时初始化 schema（幂等）
 initSchema();
 

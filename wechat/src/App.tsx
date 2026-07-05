@@ -1,26 +1,39 @@
+import { HashRouter, Routes, Route, NavLink } from 'react-router-dom';
+import ChatPage from './pages/ChatPage';
+import ReportPage from './pages/ReportPage';
+
 export default function App() {
   return (
-    <div className="min-h-screen bg-[#ededed] p-4">
-      <div className="mx-auto max-w-md">
-        <header className="mb-3 rounded-lg bg-[#07c160] px-4 py-3 text-center text-white">
-          <h1 className="text-base font-medium">Linsight 经营助手</h1>
-        </header>
-        <div className="space-y-3">
-          <div className="rounded-lg bg-white p-3 shadow-sm">
-            <p className="text-xs text-gray-400">AI 助手</p>
-            <p className="mt-1 text-sm text-gray-800">
-              早上好，老王。昨日经营日报已生成，点击查看。
-            </p>
-          </div>
-          <div className="rounded-lg bg-[#95ec69] p-3 shadow-sm">
-            <p className="text-xs text-gray-500">老王</p>
-            <p className="mt-1 text-sm text-gray-800">（微信聊天 UI，Day 2 实现）</p>
-          </div>
+    <HashRouter>
+      <div className="mx-auto flex h-screen max-w-md flex-col bg-[#ededed]">
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <Routes>
+            <Route path="/" element={<ChatPage />} />
+            <Route path="/reports" element={<ReportPage />} />
+          </Routes>
         </div>
-        <p className="mt-4 text-center text-xs text-gray-400">
-          骨架就绪。端口 5174，API 代理到 3001。
-        </p>
+        <nav className="flex shrink-0 border-t border-gray-200 bg-white">
+          <TabItem to="/" label="聊天" icon="💬" />
+          <TabItem to="/reports" label="日报" icon="📊" />
+        </nav>
       </div>
-    </div>
+    </HashRouter>
+  );
+}
+
+function TabItem({ to, label, icon }: { to: string; label: string; icon: string }) {
+  return (
+    <NavLink
+      to={to}
+      end
+      className={({ isActive }) =>
+        `flex flex-1 flex-col items-center gap-0.5 py-2 text-xs ${
+          isActive ? 'text-[#07c160]' : 'text-gray-500'
+        }`
+      }
+    >
+      <span className="text-lg leading-none">{icon}</span>
+      <span>{label}</span>
+    </NavLink>
   );
 }

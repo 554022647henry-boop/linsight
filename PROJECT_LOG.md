@@ -18,6 +18,113 @@
 
 ---
 
+## 2026-07-05｜Day 3 并行开发启动（进行中）
+
+### Day 3 战略目标
+
+把 Day 2 的"能跑的系统"升级为"能 Demo 的产品"——AI 真实接入 + 三端 UI 完整 + 落地页 Demo 入口。
+
+### Day 3 并行分工（4 路）
+
+| 路 | 模块 | 产出文件 | 输入 |
+|---|------|---------|------|
+| 1 | 后端 AI 真实接入 | server/src/services/ai.ts + 改 chat/daily-reports/purchase-orders | CONTRACT 3.6/3.10/3.11/3.13 |
+| 2 | 微信老板端 | wechat/src/{api,pages,App}.tsx | CONTRACT 3.10/3.11 |
+| 3 | 顾客 H5 点餐端 | h5/src/{api,pages,App}.tsx | CONTRACT 3.1/3.8 |
+| 4 | 落地页 Demo 入口 + 时间轴进度 | index.html 增量 | 无 |
+
+### Day 3 验收标准
+
+- 后端：AI 端点真实调 TRAE model API，无 key 时 fallback 到 mock
+- wechat：聊天页能发消息收回复 + 日报页能生成并显示
+- h5：扫码 → 选菜 → 下单全流程跑通，订单进后端
+- 落地页：三个 Demo 入口可点击，时间轴进度状态正确
+- 联调：web 点餐 → 后端创单；wechat 发消息 → AI 真实回复；日报生成 → 推送到 wechat
+
+### Day 3 待办
+
+- [ ] 4 路并行实现
+- [ ] 合并 conflict review（预期零冲突，各路改不同文件）
+- [ ] 全量 typecheck + 三端 dev 联调
+- [ ] commit Day 3
+
+---
+
+## 2026-07-04｜Day 2 全栈功能实现完成
+
+### 本次完成（Day 2）
+
+按 Day 1 制定的"路径 C+D 融合"方案，4 路并行会话实现全栈功能。commit `3ca3e48`：65 文件，15740 行。
+
+**后端 API 完整实现（14 个路由模块）**
+- ✅ `purchase-orders` — AI 识别(mock) + 确认入库 + 取消，含异常检测
+- ✅ `orders` — 下单(触发库存 FIFO 扣减) + 加菜 + 结账 + 查询
+- ✅ `inventory` — 批次管理 + 预警 + 消耗扣减逻辑
+- ✅ `dishes` / `ingredients` / `tables` / `suppliers` — 完整 CRUD
+- ✅ `dish-ingredients` — BOM 管理（仅 /parse 端点保留 501，非核心）
+- ✅ `ai-insights` / `chat` / `daily-reports` — mock 返回，结构对齐契约
+- ✅ `daily-reports/generate` — 日结聚合 SQL 真实实现（营收/成本/毛利/客流/TOP 菜品/单品利润明细）
+- ⚠️ AI 层均为 mock：chat 是关键词匹配，ai_summary 是模板拼接，purchase-orders/recognize 返回固定 3 商品
+
+**前端 web 商家端（完整实现）**
+- ✅ [Cashier.tsx](file:///d:/Projects/Linsight/web/src/pages/Cashier.tsx) — 桌台选择 + 点餐清单 + 加菜 + 结账弹窗
+- ✅ [KitchenBoard.tsx](file:///d:/Projects/Linsight/web/src/pages/KitchenBoard.tsx) — 厨房看板（就餐中订单实时状态）
+- ✅ [DishManagement.tsx](file:///d:/Projects/Linsight/web/src/pages/DishManagement.tsx) — 菜品 CRUD 管理
+- ✅ App.tsx 路由布局 + API 层（config/dishes/orders/tables）+ 类型定义
+
+**Demo 数据（seed.sql）**
+- 3 供应商 / 30 食材 / 20 菜品 / 20 BOM / 5 桌台
+- 7 采购单 / 19 订单 / 17 支付记录 / 19 库存批次
+- 覆盖 2026-06-28 至 2026-07-03 一周流水
+
+**验证**
+- 后端 typecheck 0 错误，`npm run dev` 起服务
+- API 联调：/api/dishes 返回 20 条，/api/tables 返回 5 条，/api/orders?status=dining 返回 2 条
+- 前端 web dev 启动，前后端联调通过（GET /api/tables 200, GET /api/dishes 200, GET /api/orders 200）
+
+### 关键决策
+
+1. **4 路并行分工** —— 数据层/业务层/AI 层/前端 web 各开一个会话，各路改不同文件零冲突
+2. **AI 层 mock 优先** —— Day 2 先把结构对齐契约，真实 AI 调用留 Day 3，避免 Day 2 被 API key 问题阻塞
+3. **daily-reports 聚合 SQL 真实实现** —— 这是 Demo 的核心数据引擎，不能 mock；ai_summary 暂用模板拼接，Day 3 接 TRAE
+4. **orders 下单触发库存 FIFO 扣减** —— 真实业务逻辑，扣减 inventory 批次，扣完标记 consumed
+5. **seed.sql 字段对齐 schema** —— 返工修正（见下）
+
+### 遇到的问题与返工
+
+**问题：seed.sql 字段名与 schema.sql 不一致**
+- 现象：`npm run db:seed` 报错 `table ingredients has no column named stock_qty`
+- 原因：并行会话写 seed.sql 时用了旧字段名（`stock_qty`/`min_stock`/`cost_per_unit`/`supplier_id`），而 schema.sql 里 ingredients 表只有 `name/unit/warning_threshold`
+- 修复：删除旧 db 文件 → 改 seed.sql 字段名对齐 schema → 重新 db:init + db:seed
+- 教训：**并行开发的集成成本**。4 路会话各自认为对齐了契约，但合并时才发现字段不一致。总工程师（本窗口）的职责就是做集成审查和字段对齐。返工只花 5 分钟，是并行模式的正常成本。
+
+**问题：git 仓库丢失**
+- 现象：`git log` 报 `not a git repository`
+- 原因：不明（可能是环境重置）
+- 修复：`git init` + 重新 add + commit。Day 1 的 commit 历史丢失，但代码完整
+- 教训：关键节点要 push 到远程，本地 git 不可靠
+
+### Day 2 传承给 Day 3 的资产
+
+| 资产 | 位置 | Day 3 用途 |
+|------|------|-----------|
+| 完整后端 API | server/src/routes/ | Day 3 窗口 1 在此基础上接 AI |
+| 真实聚合 SQL | daily-reports.ts /generate | Day 3 窗口 1 只需替换 ai_summary 生成方式 |
+| Demo 数据 | seed.sql | Day 3 所有联调依赖这份数据 |
+| web 商家端 | web/src/ | Day 3 联调验收用（已完整，不改） |
+| 契约文档 | CONTRACT.md | Day 3 各窗口的单一事实源 |
+| 落地页 | index.html | Day 3 窗口 4 只做增量（已是参赛级） |
+
+### Day 2 待办（已全部完成）
+
+- [x] 4 路并行实现 routes 业务逻辑（替换 501 占位）
+- [x] seed.sql + 1 周 Demo 数据
+- [x] 前端 web 收银/管理 UI
+- [ ] 前端 wechat 微信聊天 UI（移至 Day 3）
+- [ ] 落地页 + 时间轴控制器（移至 Day 3，落地页已就绪，只需加 Demo 入口）
+
+---
+
 ## 2026-07-04｜Day 1 脚手架搭建完成
 
 ### 本次完成（Day 1）

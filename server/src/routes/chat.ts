@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { getDb } from '../db/index.js';
 import type { ChatLog, ChatMessageType } from '../types/index.js';
+import { chatReply, type LlmMessage } from '../services/ai.js';
 
 export const chatRouter = Router();
 
@@ -55,7 +56,7 @@ chatRouter.get('/sessions/:sessionId/messages', (req: Request, res: Response<Cha
   res.json(rows);
 });
 
-chatRouter.post('/messages', (req: Request, res: Response<SendMessageResponse>) => {
+chatRouter.post('/messages', async (req: Request, res: Response<SendMessageResponse>) => {
   const db = getDb();
   const { session_id, message_type, content } = req.body as SendMessageRequest;
 
@@ -81,28 +82,54 @@ chatRouter.post('/messages', (req: Request, res: Response<SendMessageResponse>) 
     const reply = db.prepare('SELECT * FROM chat_logs WHERE id = ?').get(replyInfo.lastInsertRowid) as unknown as ChatLog;
     aiReplies.push(reply);
   } else if (message_type === 'voice' || message_type === 'text') {
+    // 意图识别（用于 ai_action 路由信号，与 LLM 回复解耦）
+    let aiAction: string | null = null;
     if (content.includes('进货') || content.includes('采购') || content.includes('买')) {
-      const replyInfo = db.prepare(`
-        INSERT INTO chat_logs (session_id, direction, message_type, content, ai_action)
-        VALUES (?, 'outgoing', 'text', ?, 'pending_purchase')
-      `).run(session_id, '收到进货信息，正在识别中...');
-      const reply = db.prepare('SELECT * FROM chat_logs WHERE id = ?').get(replyInfo.lastInsertRowid) as unknown as ChatLog;
-      aiReplies.push(reply);
+      aiAction = 'pending_purchase';
     } else if (content.includes('盘点') || content.includes('实盘') || content.includes('库存')) {
-      const replyInfo = db.prepare(`
-        INSERT INTO chat_logs (session_id, direction, message_type, content, ai_action)
-        VALUES (?, 'outgoing', 'text', ?, 'inventory_check')
-      `).run(session_id, '收到盘点信息，正在对账中...');
-      const reply = db.prepare('SELECT * FROM chat_logs WHERE id = ?').get(replyInfo.lastInsertRowid) as unknown as ChatLog;
-      aiReplies.push(reply);
-    } else {
-      const replyInfo = db.prepare(`
-        INSERT INTO chat_logs (session_id, direction, message_type, content, ai_action)
-        VALUES (?, 'outgoing', 'text', ?, NULL)
-      `).run(session_id, '好的，收到您的消息！');
-      const reply = db.prepare('SELECT * FROM chat_logs WHERE id = ?').get(replyInfo.lastInsertRowid) as unknown as ChatLog;
-      aiReplies.push(reply);
+      aiAction = 'inventory_check';
     }
+
+    // 取最近 10 条历史，构造对话上下文
+    const historyRows = db.prepare(`
+      SELECT direction, content FROM chat_logs
+      WHERE session_id = ? AND id != ?
+      ORDER BY created_at DESC LIMIT 10
+    `).all(session_id, info.lastInsertRowid) as unknown as Array<{ direction: string; content: string }>;
+
+    const history: LlmMessage[] = historyRows
+      .reverse()
+      .map((r) => ({
+        role: (r.direction === 'incoming' ? 'user' : 'assistant') as
+          | 'user'
+          | 'assistant',
+        content: r.content
+      }));
+
+    const aiText = await chatReply(content, history);
+
+    let replyText: string;
+    if (aiText) {
+      replyText = aiText;
+    } else if (aiAction === 'pending_purchase') {
+      replyText = '收到进货信息，正在识别中...';
+    } else if (aiAction === 'inventory_check') {
+      replyText = '收到盘点信息，正在对账中...';
+    } else {
+      // 无 LLM 时的友好 fallback：引导到日报或提示配置
+      if (content.includes('生意') || content.includes('怎么样') || content.includes('日报') || content.includes('营收') || content.includes('利润')) {
+        replyText = '我需要 AI 能力才能回答经营类问题。请在日报页查看经营数据，或配置 TRAE_API_KEY 启用智能对话。';
+      } else {
+        replyText = '收到您的消息。当前为 Demo 模式（未配置 TRAE_API_KEY），AI 对话能力未启用。';
+      }
+    }
+
+    const replyInfo = db.prepare(`
+      INSERT INTO chat_logs (session_id, direction, message_type, content, ai_action)
+      VALUES (?, 'outgoing', 'text', ?, ?)
+    `).run(session_id, replyText, aiAction);
+    const reply = db.prepare('SELECT * FROM chat_logs WHERE id = ?').get(replyInfo.lastInsertRowid) as unknown as ChatLog;
+    aiReplies.push(reply);
   }
 
   res.json({ received, ai_replies: aiReplies });
