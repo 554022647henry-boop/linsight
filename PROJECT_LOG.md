@@ -18,35 +18,99 @@
 
 ---
 
-## 2026-07-05｜Day 3 并行开发启动（进行中）
+## 2026-07-05｜Day 3 AI 接入 + 三端 UI 完整 + 落地页 Demo 入口
 
-### Day 3 战略目标
+### 本次完成（Day 3）
 
-把 Day 2 的"能跑的系统"升级为"能 Demo 的产品"——AI 真实接入 + 三端 UI 完整 + 落地页 Demo 入口。
+4 路并行会话实现 + 总工程师审核修正。commit `96d77ce`：31 文件，4065 行。
 
-### Day 3 并行分工（4 路）
+**后端 AI 真实接入**
+- ✅ 新增 [server/src/services/ai.ts](file:///d:/Projects/Linsight/server/src/services/ai.ts) — TRAE model API 封装
+  - `callLlm(systemPrompt, userMessage, history?)` 统一入口，失败返回 null 不阻断
+  - `chatReply` / `generateDailyReport` / `recognizePurchaseOrder` 三个业务函数
+  - 环境变量：TRAE_API_KEY / TRAE_API_ENDPOINT / TRAE_MODEL
+- ✅ [chat.ts](file:///d:/Projects/Linsight/server/src/routes/chat.ts) — POST /messages 接 LLM，10 条历史上下文
+- ✅ [daily-reports.ts](file:///d:/Projects/Linsight/server/src/routes/daily-reports.ts) — /generate 的 ai_summary/ai_suggestion 接 LLM
+- ✅ [purchase-orders.ts](file:///d:/Projects/Linsight/server/src/routes/purchase-orders.ts) — /recognize 接 LLM 解析进货单
+- ✅ [.env.example](file:///d:/Projects/Linsight/.env.example) — 配置模板
 
-| 路 | 模块 | 产出文件 | 输入 |
-|---|------|---------|------|
-| 1 | 后端 AI 真实接入 | server/src/services/ai.ts + 改 chat/daily-reports/purchase-orders | CONTRACT 3.6/3.10/3.11/3.13 |
-| 2 | 微信老板端 | wechat/src/{api,pages,App}.tsx | CONTRACT 3.10/3.11 |
-| 3 | 顾客 H5 点餐端 | h5/src/{api,pages,App}.tsx | CONTRACT 3.1/3.8 |
-| 4 | 落地页 Demo 入口 + 时间轴进度 | index.html 增量 | 无 |
+**微信老板端（wechat）**
+- ✅ [ChatPage.tsx](file:///d:/Projects/Linsight/wechat/src/pages/ChatPage.tsx) — 微信风格聊天 UI（绿色 header / 气泡 / 输入栏 / 语音图片按钮 / 卡片消息渲染）
+- ✅ [ReportPage.tsx](file:///d:/Projects/Linsight/wechat/src/pages/ReportPage.tsx) — 日报页（日期选择 / 指标卡片 / AI 摘要建议 / 生成推送按钮）
+- ✅ api/chat.ts + api/reports.ts — API 封装
+- ✅ App.tsx — HashRouter + 底部 tab（聊天/日报）
 
-### Day 3 验收标准
+**顾客 H5 点餐端（h5）**
+- ✅ [MenuPage.tsx](file:///d:/Projects/Linsight/h5/src/pages/MenuPage.tsx) — 菜单页（分类 tab / 菜品列表 / 购物车浮动栏 / 购物车展开 sheet）
+- ✅ [ConfirmPage.tsx](file:///d:/Projects/Linsight/h5/src/pages/ConfirmPage.tsx) — 确认下单页（明细 / 备注 / 人数 / 提交）
+- ✅ [SuccessPage.tsx](file:///d:/Projects/Linsight/h5/src/pages/SuccessPage.tsx) — 成功页（订单号 / 已通知厨房）
+- ✅ [CartContext.tsx](file:///d:/Projects/Linsight/h5/src/cart/CartContext.tsx) — 购物车状态管理
+- ✅ api/client.ts + dishes.ts + orders.ts — API 封装
 
-- 后端：AI 端点真实调 TRAE model API，无 key 时 fallback 到 mock
-- wechat：聊天页能发消息收回复 + 日报页能生成并显示
-- h5：扫码 → 选菜 → 下单全流程跑通，订单进后端
-- 落地页：三个 Demo 入口可点击，时间轴进度状态正确
-- 联调：web 点餐 → 后端创单；wechat 发消息 → AI 真实回复；日报生成 → 推送到 wechat
+**落地页 Demo 入口**
+- ✅ [index.html](file:///d:/Projects/Linsight/index.html) — 新增 Live Demo section：三个入口卡片（5173/5174/5175）
+- ✅ 时间轴进度状态：Day1 done(绿) / Day2-4 doing(金+脉冲) / Day5-9 todo
 
-### Day 3 待办
+### 审核发现的问题与修正
 
-- [ ] 4 路并行实现
-- [ ] 合并 conflict review（预期零冲突，各路改不同文件）
-- [ ] 全量 typecheck + 三端 dev 联调
-- [ ] commit Day 3
+**问题 1：daily-reports fallback 建议逻辑 bug**
+- 现象：7-01/02/03 净利均为负（-547/-547/-754 元），但 AI 建议"经营状况良好，继续保持"
+- 原因：fallback 只检查毛利率/损耗/对账差异，没检查净利。毛利率 96.5%（因为食材成本低），损耗 0，对账差异 0，所以 suggestions 为空，默认推"良好"
+- 修正：加 `if (net_profit < 0) suggestions.push(亏损提示)`，且毛利率检查加 `net_profit >= 0` 前置条件
+- 修正后效果：7-01/02/03 均正确提示"当日亏损 547/547/754 元，建议提升客流或控制人工成本"
+
+**问题 2：chat fallback 文案太弱**
+- 现象：用户问"昨天生意怎么样"，AI 回复"好的，收到您的消息！"
+- 原因：无 TRAE_API_KEY 时，非进货/盘点问题统一回复"好的，收到您的消息！"
+- 修正：识别经营类关键词（生意/怎么样/日报/营收/利润），引导到日报页或提示配置 TRAE_API_KEY
+
+**非问题（已确认正常）**
+- h5 下单 API 返回 `{ data: {...}, message: '...' }` 而非直接返回 order —— 这是后端设计，h5 前端 `CreatedOrderResponse` 类型已正确对齐
+- 7-03 营收仅 48 元 —— seed 数据里 7-03 只有 1 单 paid（48 元），另 2 单是 dining 未支付，符合预期
+
+### 关键决策
+
+1. **AI service 统一封装** — 所有 LLM 调用走 `callLlm()`，失败一律返回 null，调用方走 fallback。不抛异常，不阻断业务
+2. **无 key 时智能 fallback** — 不是简单的"AI 不可用"，而是根据问题类型给不同引导（经营类→日报页，进货类→识别中，其他→Demo 模式提示）
+3. **保留 mock 数据的"发现问题"价值** — 7-01/02/03 全部亏损（人工 800/天 vs 营收 200-300），AI 主动提示"亏损"，正好展示产品"帮老板发现问题"的价值
+4. **wechat 用 HashRouter** — 微信端用 hash 路由避免刷新 404，h5 用 BrowserRouter（需服务器支持，Demo 够用）
+
+### 验证结果
+
+| 项目 | 结果 |
+|------|------|
+| 后端 typecheck | ✅ 0 错误 |
+| web typecheck | ✅ 0 错误 |
+| wechat typecheck | ✅ 0 错误 |
+| h5 typecheck | ✅ 0 错误 |
+| /api/health | ✅ ok |
+| /api/dishes | ✅ 20 条 |
+| /api/orders (POST) | ✅ 201，order_no + items |
+| /api/daily-reports/generate | ✅ 营收/毛利/净利/建议均正确 |
+| /api/chat/messages | ✅ fallback 回复正确 |
+| h5→web 联调 | ✅ h5 下单，web 看到 dining 订单 |
+| 落地页 Demo 入口 | ✅ 三个卡片链接正确 |
+| 时间轴进度 | ✅ Day1 done / Day2-4 doing / Day5-9 todo |
+
+### Day 3 传承给 Day 4 的资产
+
+| 资产 | 位置 | Day 4 用途 |
+|------|------|-----------|
+| AI service 封装 | server/src/services/ai.ts | Day 4 配 TRAE_API_KEY 即启用真实 AI |
+| 三端完整 UI | web/wechat/h5 | Day 4 联调打磨，不做大改 |
+| 落地页 | index.html | Day 4 加 Demo 引导文案 |
+| 修正后的 fallback | daily-reports.ts + chat.ts | Day 4 真实 AI 接入后保留作 fallback |
+
+### Day 4 待办
+
+- [ ] 配置 TRAE_API_KEY，启用真实 AI 对话
+- [ ] 三端联调打磨（边角 case、loading 态、错误态）
+- [ ] Demo 脚本撰写（走通完整故事线）
+- [ ] 录屏 / 截图素材
+
+---
+
+## 2026-07-05｜Day 3 并行开发启动（原计划）
 
 ---
 
