@@ -1296,6 +1296,45 @@
     .timeline-dot.done { background: #10b981 !important; box-shadow: 0 0 0 4px rgba(16,185,129,.12); }
     .timeline-dot.doing { background: #f59e0b !important; box-shadow: 0 0 0 4px rgba(245,158,11,.18); animation: pulse-dot 2s ease-in-out infinite; }
 
+    /* ═══ Product Screenshots ═══ */
+    .moat-shot {
+      width: 100%;
+      margin-top: 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(245,158,11,.15);
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      transition: transform 0.3s var(--ease-out), border-color 0.3s var(--ease-out);
+      display: block;
+    }
+    .moat-card:hover .moat-shot {
+      transform: scale(1.02);
+      border-color: rgba(245,158,11,.35);
+    }
+
+    .scene-shot {
+      width: 100%;
+      margin-top: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0,0,0,.4);
+      display: block;
+    }
+
+    .demo-shot {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 8px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    @media (max-width: 700px) {
+      .demo-shot { height: 200px; }
+    }
+
     /* ═══ Responsive ═══ */
     @media (max-width: 700px) {
       .section { padding: 48px 16px; }
@@ -1355,6 +1394,7 @@
         <div class="demo-icon">🏪</div>
         <h3>商家管理后台</h3>
         <p>收银点餐 · 菜品/桌台管理 · 经营看板 · 日结退款</p>
+        <img class="demo-shot" src="assets/screenshots/web-inventory.png" alt="商家端库存查看页" loading="lazy">
         <span class="demo-link">访问 →</span>
         <span class="demo-port">localhost:5173</span>
       </a>
@@ -1364,6 +1404,7 @@
         <div class="demo-icon">💬</div>
         <h3>老板 AI 助手</h3>
         <p>对话式问数 · 经营日报推送 · 异常预警 · 行动建议</p>
+        <img class="demo-shot" src="assets/screenshots/wechat-purchase-card.png" alt="老板微信端进货单识别" loading="lazy">
         <span class="demo-link">访问 →</span>
         <span class="demo-port">localhost:5174</span>
       </a>
@@ -1373,6 +1414,7 @@
         <div class="demo-icon">🍜</div>
         <h3>顾客点餐 H5</h3>
         <p>扫码下单 · 桌台 A1 · 菜品浏览 · 提交订单</p>
+        <img class="demo-shot" src="assets/screenshots/h5-menu.png" alt="顾客点餐 H5 菜单页" loading="lazy">
         <span class="demo-link">访问 →</span>
         <span class="demo-port">localhost:5175/?table_no=A1</span>
       </a>
@@ -1394,6 +1436,7 @@
           <span class="vs-label">vs SaaS</span>
           <span class="vs-saas">SaaS 要你打开</span> · <span class="vs-lin">Linsight 嵌在工作流里</span>
         </div>
+        <img class="moat-shot" src="assets/screenshots/wechat-purchase-card.png" alt="微信端进货单 AI 识别卡片" loading="lazy">
       </div>
 
       <div class="moat-card r r-d2">
@@ -1404,6 +1447,7 @@
           <span class="vs-label">vs SaaS</span>
           <span class="vs-saas">SaaS 要你打开</span> · <span class="vs-lin">Linsight 嵌在工作流里</span>
         </div>
+        <img class="moat-shot" src="assets/screenshots/web-loss.png" alt="商家端损耗监控页" loading="lazy">
       </div>
 
       <div class="moat-card r r-d3">
@@ -1414,6 +1458,7 @@
           <span class="vs-label">vs SaaS</span>
           <span class="vs-saas">SaaS 要你打开</span> · <span class="vs-lin">Linsight 嵌在工作流里</span>
         </div>
+        <img class="moat-shot" src="assets/screenshots/wechat-report-detail.png" alt="微信端日报详情页" loading="lazy">
       </div>
     </div>
   </section>
@@ -1490,6 +1535,7 @@
               <div class="ai-text">昨日<strong>牛腩成本偏高</strong>，拉低毛利。建议今日主推<strong>酸梅汤套餐</strong>对冲牛腩成本，预计可拉高毛利 8%。</div>
             </div>
           </div>
+          <img class="scene-shot" src="assets/screenshots/wechat-report-detail.png" alt="微信端日报详情页截图" loading="lazy">
         </div>
 
         <!-- 场景 2：进货到货 -->
@@ -1521,6 +1567,7 @@
               <div class="ai-text">已确认入账。牛肉<strong>已入库</strong>，保质期 2 天，库存预警阈值 5kg。</div>
             </div>
           </div>
+          <img class="scene-shot" src="assets/screenshots/wechat-purchase-card.png" alt="微信端进货单 AI 识别截图" loading="lazy">
         </div>
 
         <!-- 场景 3：营业接单 -->
@@ -1554,6 +1601,7 @@
               <div class="ai-text">营业平稳，<strong>A1—A2 翻台 2 次</strong>。酸梅汤套餐已售 9 份，对冲策略生效中。</div>
             </div>
           </div>
+          <img class="scene-shot" src="assets/screenshots/web-cashier.png" alt="商家端收银点餐页截图" loading="lazy">
         </div>
 
         <!-- 场景 4：关店对账 -->
@@ -1583,6 +1631,7 @@
               <div class="ai-text">牛肉实际消耗比理论多 <strong>4 斤</strong>（约 -180 元），超出正常损耗阈值。<strong>建议复盘厨房</strong>投料与损耗记录。</div>
             </div>
           </div>
+          <img class="scene-shot" src="assets/screenshots/web-loss.png" alt="商家端损耗监控页截图" loading="lazy">
         </div>
 
         <!-- 场景 5：次日日报 -->
@@ -1616,6 +1665,7 @@
               <div class="ai-text">昨日推<strong>酸梅汤套餐</strong>奏效，牛肉差异已收窄至 -0.5 斤。建议今日<strong>继续套餐对冲</strong>策略，预计毛利可再提 5%。</div>
             </div>
           </div>
+          <img class="scene-shot" src="assets/screenshots/wechat-reports.png" alt="微信端日报列表页截图" loading="lazy">
         </div>
 
       </div>

@@ -39,15 +39,20 @@
 
 [daily-reports.ts L75-76](file:///d:/Projects/Linsight/server/src/routes/daily-reports.ts#L75-L76) 的 `LEFT JOIN purchase_items` 当一食材有多采购批次时会重复计算成本。Demo 数据量小影响有限，不阻塞提交，后续可改为按批次均价或取最新批次单价。
 
-### 截图嫁接落地页可行性探索
+### 截图嫁接落地页：✅ 已完成
 
-派 2 个 browser_use agent 实际截图验证，结论：**完全可行**。
-- wechat 端 4 张截图成功（含进货识别卡片、日报列表/详情），视觉质量好
-- web 端库存/采购页截图成功，有真实数据
-- 临时目录已有 60+ 张历史截图覆盖各端，素材齐备
-- 推荐嫁接位置：三个独占壁垒卡片 + 老板的一天时间轴 + Live Demo 入口卡片
-- 技术方案：截图存 `assets/screenshots/`，index.html 相对路径引用，加圆角边框阴影
-- 详见下发的截图嫁接提示词（交由读图模型执行）
+派读图模型执行截图嫁接，8 张产品截图（1.05MB）已嫁接到 index.html 三个位置：
+- **三个独占壁垒卡片**：拍照入账→wechat-purchase-card、损耗监控→web-loss、日报推送→wechat-report-detail
+- **老板的一天时间轴**：5 个场景各配一张对应产品截图（早报/进货/营业/对账/次日）
+- **Live Demo 入口**：3 张端截图缩略图（商家端/老板端/顾客端）
+
+CSS 新增 `.moat-shot`/`.scene-shot`/`.demo-shot` 三类样式，暖金边框+圆角+阴影+hover 微交互，移动端响应式堆叠。截图存 `assets/screenshots/`，index.html 相对路径引用。
+
+### file:// 打不开问题修复
+
+用户反馈双击 index.html 打不开。CTO 诊断：index.html 文件本身完全正常（HTTP 验证 200，页面非白屏，console 无错误，8 张图全部 200）。问题是 file:// 协议下外部图片依赖可能被浏览器安全策略限制。
+
+解决方案：新增 [serve-landing.js](file:///d:/Projects/Linsight/serve-landing.js)（Node 内置 http 模块静态服务器），运行 `node serve-landing.js` 后访问 http://localhost:8080 即可正常打开落地页。
 
 ### Commit
 
