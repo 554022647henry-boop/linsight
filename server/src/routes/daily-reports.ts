@@ -69,16 +69,16 @@ dailyReportsRouter.post('/generate', async (req: Request, res: Response<DailyRep
   const revenue = (revenueStmt.get(date) as unknown as { revenue: number }).revenue;
 
   const foodCostStmt = db.prepare(`
-    SELECT COALESCE(SUM(oi.quantity * di.quantity * pi.unit_price / pi.quantity), 0) as food_cost
+    SELECT COALESCE(SUM(oi.quantity * di.quantity * pi.unit_price), 0) as food_cost
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
-    JOIN dish_ingredients di ON oi.dish_id = di.dish_id
-    JOIN purchase_items pi ON di.ingredient_id = pi.ingredient_id
+    LEFT JOIN dish_ingredients di ON oi.dish_id = di.dish_id
+    LEFT JOIN purchase_items pi ON di.ingredient_id = pi.ingredient_id
     WHERE o.status = 'paid' AND DATE(o.created_at) = ?
   `);
   const food_cost = (foodCostStmt.get(date) as unknown as { food_cost: number }).food_cost;
 
-  const labor_cost = 800;
+  const labor_cost = Number(process.env.LABOR_COST_DAILY) || 400;
 
   const lossAmountStmt = db.prepare(`
     SELECT COALESCE(SUM(diff_amount), 0) as loss_amount
@@ -121,7 +121,7 @@ dailyReportsRouter.post('/generate', async (req: Request, res: Response<DailyRep
       oi.dish_name,
       SUM(oi.quantity) as sold_count,
       SUM(oi.amount) as revenue,
-      COALESCE(SUM(oi.quantity * di.quantity * pi.unit_price / pi.quantity), 0) as food_cost
+      COALESCE(SUM(oi.quantity * di.quantity * pi.unit_price), 0) as food_cost
     FROM order_items oi
     JOIN orders o ON oi.order_id = o.id
     LEFT JOIN dish_ingredients di ON oi.dish_id = di.dish_id

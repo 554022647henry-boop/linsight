@@ -1,10 +1,12 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import type { ConfirmSuccessState } from './ConfirmPage';
 
 export default function SuccessPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [params] = useSearchParams();
   const state = location.state as ConfirmSuccessState | null;
+  const orderId = state?.orderId ?? Number(params.get('order_id') ?? '0');
 
   return (
     <div className="min-h-screen bg-orange-50">
@@ -52,9 +54,18 @@ export default function SuccessPage() {
           )}
         </div>
 
+        {orderId > 0 && (
+          <button
+            onClick={() => navigate(`/order/${orderId}`)}
+            className="mt-8 w-full rounded-full border border-orange-600 bg-white py-3 text-base font-bold text-orange-600 active:scale-95"
+          >
+            查看订单状态
+          </button>
+        )}
+
         <button
           onClick={() => navigate('/')}
-          className="mt-8 w-full rounded-full bg-orange-600 py-3 text-base font-bold text-white shadow active:scale-95"
+          className="mt-3 w-full rounded-full bg-orange-600 py-3 text-base font-bold text-white shadow active:scale-95"
         >
           返回菜单
         </button>

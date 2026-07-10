@@ -60,7 +60,7 @@ export default function ConfirmPage() {
         people: Number(people) || 0,
       };
       cart.clear();
-      navigate('/success', { state, replace: true });
+      navigate(`/payment?order_id=${res.data.id}`, { state, replace: true });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '下单失败，请重试');
     } finally {

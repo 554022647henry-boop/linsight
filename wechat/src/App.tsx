@@ -1,6 +1,8 @@
 import { HashRouter, Routes, Route, NavLink } from 'react-router-dom';
 import ChatPage from './pages/ChatPage';
-import ReportPage from './pages/ReportPage';
+import ReportList from './pages/ReportList';
+import InventoryCheck from './pages/InventoryCheck';
+import Insights from './pages/Insights';
 
 export default function App() {
   return (
@@ -9,12 +11,16 @@ export default function App() {
         <div className="flex flex-1 flex-col overflow-hidden">
           <Routes>
             <Route path="/" element={<ChatPage />} />
-            <Route path="/reports" element={<ReportPage />} />
+            <Route path="/reports" element={<ReportList />} />
+            <Route path="/check" element={<InventoryCheck />} />
+            <Route path="/insights" element={<Insights />} />
           </Routes>
         </div>
         <nav className="flex shrink-0 border-t border-gray-200 bg-white">
           <TabItem to="/" label="聊天" icon="💬" />
           <TabItem to="/reports" label="日报" icon="📊" />
+          <TabItem to="/check" label="盘点" icon="⚖️" />
+          <TabItem to="/insights" label="洞察" icon="🔔" />
         </nav>
       </div>
     </HashRouter>

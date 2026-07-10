@@ -600,6 +600,376 @@
       color: var(--ink-2);
     }
 
+    /* ═══ Moat Cards (三个独占壁垒) ═══ */
+    .moat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .moat-card {
+      padding: 32px 24px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all 0.3s var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .moat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      opacity: 0;
+      transition: opacity 0.3s var(--ease-out);
+    }
+
+    .moat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(245,158,11,.35);
+      box-shadow: 0 8px 32px rgba(245,158,11,.08);
+    }
+
+    .moat-card:hover::before { opacity: 1; }
+
+    .moat-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+      line-height: 1;
+    }
+
+    .moat-card h3 {
+      font-family: var(--f-display);
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .moat-card .moat-desc {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--ink-2);
+      margin-bottom: 16px;
+    }
+
+    .moat-card .moat-desc strong {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .moat-vs {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.02);
+      border-left: 2px solid rgba(245,158,11,.3);
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--ink-3);
+    }
+
+    .moat-vs .vs-label {
+      font-family: var(--f-mono);
+      font-size: 9px;
+      letter-spacing: .08em;
+      color: var(--gold);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .moat-vs .vs-saas { color: var(--ink-2); }
+    .moat-vs .vs-lin { color: #fff; }
+
+    @media (max-width: 700px) {
+      .moat-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ═══ 老板的一天 · 时间轴控制器 ═══ */
+    .day-demo {
+      position: relative;
+      z-index: 1;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+
+    .day-intro {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--ink-2);
+      max-width: 64ch;
+      margin-bottom: 36px;
+    }
+
+    .day-intro strong { color: var(--gold); font-weight: 600; }
+
+    .day-stage {
+      padding: 28px;
+      border-radius: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .day-track {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 28px;
+    }
+
+    .day-track::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(245,158,11,.1), rgba(245,158,11,.25), rgba(245,158,11,.1));
+      z-index: 0;
+    }
+
+    .day-node {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 2px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--f-body);
+      color: var(--ink-3);
+      transition: color 0.25s var(--ease-out);
+    }
+
+    .day-node .node-dot {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: var(--surface-2);
+      border: 2px solid var(--border);
+      transition: all 0.25s var(--ease-out);
+    }
+
+    .day-node .node-time {
+      font-family: var(--f-mono);
+      font-size: 10px;
+      letter-spacing: .04em;
+      color: var(--ink-3);
+    }
+
+    .day-node .node-label {
+      font-size: 12px;
+      color: var(--ink-2);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .day-node:hover { color: var(--ink); }
+    .day-node:hover .node-dot {
+      border-color: rgba(245,158,11,.4);
+      background: var(--gold-bg);
+    }
+
+    .day-node.active .node-dot {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: var(--gold);
+      box-shadow: 0 0 0 5px rgba(245,158,11,.14), 0 6px 20px rgba(245,158,11,.25);
+      transform: scale(1.06);
+    }
+
+    .day-node.active .node-time { color: var(--gold); }
+    .day-node.active .node-label { color: #fff; }
+
+    .day-panel { min-height: 240px; }
+
+    .day-scene {
+      display: none;
+      animation: sceneIn 0.4s var(--ease-out);
+    }
+
+    .day-scene.active { display: block; }
+
+    @keyframes sceneIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .scene-head {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+
+    .scene-head h3 {
+      font-family: var(--f-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .scene-head .scene-time {
+      font-family: var(--f-mono);
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: .06em;
+    }
+
+    .scene-sub {
+      font-size: 13px;
+      color: var(--ink-3);
+      margin-bottom: 18px;
+    }
+
+    .scene-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      padding: 14px 14px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+
+    .metric .m-label {
+      font-size: 11px;
+      color: var(--ink-3);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .metric .m-value {
+      font-family: var(--f-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.1;
+    }
+
+    .metric .m-value.gold {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .metric .m-value.warn { color: var(--rose); }
+    .metric .m-value.ok { color: var(--emerald); }
+    .metric .m-value .unit {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-3);
+      margin-left: 2px;
+    }
+
+    .ai-chat {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ai-bubble {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .ai-avatar {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .ai-text {
+      padding: 12px 14px;
+      border-radius: 10px 10px 10px 2px;
+      background: var(--gold-bg);
+      border: 1px solid rgba(245,158,11,.18);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+
+    .ai-text strong { color: var(--gold); font-weight: 600; }
+
+    .boss-bubble {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex-direction: row-reverse;
+    }
+
+    .boss-avatar {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .boss-text {
+      padding: 12px 14px;
+      border-radius: 10px 10px 2px 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink-2);
+      font-family: var(--f-mono);
+    }
+
+    .receipt-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 13px;
+    }
+    .receipt-line:last-child { border-bottom: none; }
+    .receipt-line .r-name { color: var(--ink-2); }
+    .receipt-line .r-val { color: #fff; font-family: var(--f-mono); }
+
+    @media (max-width: 700px) {
+      .day-demo { padding: 48px 16px; }
+      .day-stage { padding: 20px 14px; }
+      .day-track { grid-template-columns: repeat(5, 1fr); gap: 2px; }
+      .day-node .node-dot { width: 36px; height: 36px; font-size: 16px; }
+      .day-node .node-label { font-size: 10px; }
+      .day-node .node-time { font-size: 9px; }
+      .scene-metrics { grid-template-columns: repeat(2, 1fr); }
+    }
+
     /* ═══ Quote Block ═══ */
     .quote-block {
       position: relative;
@@ -1009,6 +1379,249 @@
     </div>
   </section>
 
+  <!-- ═══ 三个独占壁垒 ═══ -->
+  <section class="section">
+    <div class="section-label r">Core Moat</div>
+    <h2 class="section-title r r-d1">三个独占壁垒</h2>
+    <p class="section-sub r r-d2">Linsight 与 SaaS 的差异不在 AI 能力，在<strong style="color:#fff;">形态</strong>——SaaS 是要被打开的产品，Linsight 是嵌在工作流里的智能体。老板做本来就在做的事。</p>
+
+    <div class="moat-grid">
+      <div class="moat-card r r-d1">
+        <div class="moat-icon">📸</div>
+        <h3>拍照入账</h3>
+        <p class="moat-desc">拍进货单发微信群，AI 多模态识别<strong>自动入账入库</strong>，原始图片留存可溯源。老板做本来就在做的事。</p>
+        <div class="moat-vs">
+          <span class="vs-label">vs SaaS</span>
+          <span class="vs-saas">SaaS 要你打开</span> · <span class="vs-lin">Linsight 嵌在工作流里</span>
+        </div>
+      </div>
+
+      <div class="moat-card r r-d2">
+        <div class="moat-icon">⚖️</div>
+        <h3>损耗监控</h3>
+        <p class="moat-desc">理论消耗（销量×配方）vs 实际消耗（期初+采购-期末），<strong>差值即洞察</strong>。牛肉对不上 200 元，AI 主动告警。</p>
+        <div class="moat-vs">
+          <span class="vs-label">vs SaaS</span>
+          <span class="vs-saas">SaaS 要你打开</span> · <span class="vs-lin">Linsight 嵌在工作流里</span>
+        </div>
+      </div>
+
+      <div class="moat-card r r-d3">
+        <div class="moat-icon">📊</div>
+        <h3>日报推送</h3>
+        <p class="moat-desc">早 8 点微信推送经营日报，营收/成本/单品利润/对账四板块，AI <strong>人话解读+行动建议</strong>。老板不用打开任何报表。</p>
+        <div class="moat-vs">
+          <span class="vs-label">vs SaaS</span>
+          <span class="vs-saas">SaaS 要你打开</span> · <span class="vs-lin">Linsight 嵌在工作流里</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 老板的一天 · 时间轴控制器 ═══ -->
+  <section class="day-demo">
+    <div class="section-label r">Day in a Life</div>
+    <h2 class="section-title r r-d1">老板的一天</h2>
+    <p class="day-intro r r-d2">
+      评委不会等一天。点击下方时间轴节点，体验老板的一天如何<strong>跑在 Linsight 上</strong>——从早 8 点看日报，到次日新日报闭环。
+    </p>
+
+    <div class="day-stage r r-d3">
+      <!-- 时间轴节点 -->
+      <div class="day-track" role="tablist">
+        <button class="day-node active" data-scene="scene-1" role="tab" aria-selected="true">
+          <span class="node-dot">📰</span>
+          <span class="node-time">08:00</span>
+          <span class="node-label">看日报</span>
+        </button>
+        <button class="day-node" data-scene="scene-2" role="tab" aria-selected="false">
+          <span class="node-dot">📦</span>
+          <span class="node-time">10:30</span>
+          <span class="node-label">进货到货</span>
+        </button>
+        <button class="day-node" data-scene="scene-3" role="tab" aria-selected="false">
+          <span class="node-dot">🍽️</span>
+          <span class="node-time">12:00</span>
+          <span class="node-label">营业接单</span>
+        </button>
+        <button class="day-node" data-scene="scene-4" role="tab" aria-selected="false">
+          <span class="node-dot">🔍</span>
+          <span class="node-time">22:30</span>
+          <span class="node-label">关店对账</span>
+        </button>
+        <button class="day-node" data-scene="scene-5" role="tab" aria-selected="false">
+          <span class="node-dot">🌅</span>
+          <span class="node-time">次日 08:00</span>
+          <span class="node-label">新日报</span>
+        </button>
+      </div>
+
+      <!-- 场景面板 -->
+      <div class="day-panel">
+
+        <!-- 场景 1：早间日报 -->
+        <div class="day-scene active" id="scene-1">
+          <div class="scene-head">
+            <h3>早间经营日报</h3>
+            <span class="scene-time">08:00 · 微信推送</span>
+          </div>
+          <p class="scene-sub">老板刚醒，微信收到 Linsight 推送，5 秒看完昨日赚没赚。</p>
+          <div class="scene-metrics">
+            <div class="metric">
+              <div class="m-label">昨日营收</div>
+              <div class="m-value gold">3,280<span class="unit">元</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">毛利</div>
+              <div class="m-value gold">1,480<span class="unit">元</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">净利</div>
+              <div class="m-value ok">680<span class="unit">元</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">毛利率</div>
+              <div class="m-value">45<span class="unit">%</span></div>
+            </div>
+          </div>
+          <div class="ai-chat">
+            <div class="ai-bubble">
+              <div class="ai-avatar">✨</div>
+              <div class="ai-text">昨日<strong>牛腩成本偏高</strong>，拉低毛利。建议今日主推<strong>酸梅汤套餐</strong>对冲牛腩成本，预计可拉高毛利 8%。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 场景 2：进货到货 -->
+        <div class="day-scene" id="scene-2">
+          <div class="scene-head">
+            <h3>进货入库</h3>
+            <span class="scene-time">10:30 · 拍照入账</span>
+          </div>
+          <p class="scene-sub">张记生鲜送货到店，老板拍进货单发微信群，AI 多模态识别自动入账。</p>
+          <div class="scene-metrics">
+            <div class="metric" style="grid-column: 1 / -1;">
+              <div class="m-label">AI 识别进货单</div>
+              <div class="receipt-line"><span class="r-name">张记生鲜 · 牛肉</span><span class="r-val">15kg × 42元 = 630元</span></div>
+              <div class="receipt-line"><span class="r-name">张记生鲜 · 青菜</span><span class="r-val">30kg × 4.5元 = 135元</span></div>
+              <div class="receipt-line"><span class="r-name">合计</span><span class="r-val">765元</span></div>
+            </div>
+          </div>
+          <div class="ai-chat">
+            <div class="ai-bubble">
+              <div class="ai-avatar">✨</div>
+              <div class="ai-text">检测到牛肉采购价 <strong>42元/kg</strong>，比上周高 <strong>8%</strong>，确认入账吗？回复 <strong>1</strong> 确认 / <strong>2</strong> 修改。</div>
+            </div>
+            <div class="boss-bubble">
+              <div class="boss-avatar">👤</div>
+              <div class="boss-text">1</div>
+            </div>
+            <div class="ai-bubble">
+              <div class="ai-avatar">✨</div>
+              <div class="ai-text">已确认入账。牛肉<strong>已入库</strong>，保质期 2 天，库存预警阈值 5kg。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 场景 3：营业接单 -->
+        <div class="day-scene" id="scene-3">
+          <div class="scene-head">
+            <h3>营业中</h3>
+            <span class="scene-time">12:00 — 21:00 · 自建收银</span>
+          </div>
+          <p class="scene-sub">顾客扫码下单，菜品销量自动结构化，厨房看板实时更新。</p>
+          <div class="scene-metrics">
+            <div class="metric">
+              <div class="m-label">今日已接</div>
+              <div class="m-value gold">38<span class="unit">单</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">在桌台</div>
+              <div class="m-value">A1—A2<span class="unit">occupied</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">厨房看板</div>
+              <div class="m-value warn">3<span class="unit">单待出餐</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">热销 TOP</div>
+              <div class="m-value">红烧牛腩饭<span class="unit">×12</span></div>
+            </div>
+          </div>
+          <div class="ai-chat">
+            <div class="ai-bubble">
+              <div class="ai-avatar">✨</div>
+              <div class="ai-text">营业平稳，<strong>A1—A2 翻台 2 次</strong>。酸梅汤套餐已售 9 份，对冲策略生效中。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 场景 4：关店对账 -->
+        <div class="day-scene" id="scene-4">
+          <div class="scene-head">
+            <h3>关店对账</h3>
+            <span class="scene-time">22:30 · 损耗监控</span>
+          </div>
+          <p class="scene-sub">AI 算理论消耗 vs 实际消耗，差值即洞察，异常主动告警。</p>
+          <div class="scene-metrics">
+            <div class="metric">
+              <div class="m-label">牛肉差异</div>
+              <div class="m-value warn">-4<span class="unit">斤 / -180元</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">青菜差异</div>
+              <div class="m-value ok">+0.3<span class="unit">斤 / 正常</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">对账结果</div>
+              <div class="m-value warn">异常<span class="unit">⚠️</span></div>
+            </div>
+          </div>
+          <div class="ai-chat">
+            <div class="ai-bubble">
+              <div class="ai-avatar">✨</div>
+              <div class="ai-text">牛肉实际消耗比理论多 <strong>4 斤</strong>（约 -180 元），超出正常损耗阈值。<strong>建议复盘厨房</strong>投料与损耗记录。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 场景 5：次日日报 -->
+        <div class="day-scene" id="scene-5">
+          <div class="scene-head">
+            <h3>次日经营日报</h3>
+            <span class="scene-time">次日 08:00 · 闭环</span>
+          </div>
+          <p class="scene-sub">昨日行动建议生效，AI 追踪效果，形成闭环。</p>
+          <div class="scene-metrics">
+            <div class="metric">
+              <div class="m-label">净利</div>
+              <div class="m-value ok">762<span class="unit">元</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">净利环比</div>
+              <div class="m-value ok">+12<span class="unit">%</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">牛肉差异</div>
+              <div class="m-value ok">-0.5<span class="unit">斤</span></div>
+            </div>
+            <div class="metric">
+              <div class="m-label">酸梅汤套餐</div>
+              <div class="m-value gold">15<span class="unit">份</span></div>
+            </div>
+          </div>
+          <div class="ai-chat">
+            <div class="ai-bubble">
+              <div class="ai-avatar">✨</div>
+              <div class="ai-text">昨日推<strong>酸梅汤套餐</strong>奏效，牛肉差异已收窄至 -0.5 斤。建议今日<strong>继续套餐对冲</strong>策略，预计毛利可再提 5%。</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ 一句话说清楚 ═══ -->
   <section class="section">
     <div class="section-label r">Concept</div>
@@ -1112,11 +1725,11 @@
     </div>
   </section>
 
-  <!-- ═══ 案例：制造业工作流对比 ═══ -->
+  <!-- ═══ 案例：餐饮小店工作流对比 ═══ -->
   <section class="section">
     <div class="section-label r">Use Case</div>
     <h2 class="section-title r r-d1">改造前 vs 改造后</h2>
-    <p class="section-sub r r-d1">以制造业老板为例——看看 Linsight 如何改变他的经营方式：</p>
+    <p class="section-sub r r-d1">以餐饮小店（中式快餐）老板为例——看看 Linsight 如何改变他的经营方式：</p>
 
     <div class="workflow-compare">
       <div class="workflow-col before r r-d1">
@@ -1126,19 +1739,19 @@
         </div>
         <div class="wf-step">
           <span class="wf-num">1</span>
-          <span>客户打电话/微信下单</span>
+          <span>老板手写进货单，月底对账翻箱倒柜</span>
         </div>
         <div class="wf-step">
           <span class="wf-num">2</span>
-          <span>老板手写订单 → 拍张照片发过去</span>
+          <span>食材损耗靠感觉，对不上账只能认亏</span>
         </div>
         <div class="wf-step">
           <span class="wf-num">3</span>
-          <span>自己对账本，月底手工算利润</span>
+          <span>收银用计算器，卖了几份什么菜全凭记忆</span>
         </div>
         <div class="wf-step">
           <span class="wf-num">4</span>
-          <span>哪个产品赚不赚钱靠感觉</span>
+          <span>月底会计算账 3 天，老板还是不知道赚没赚</span>
         </div>
       </div>
 
@@ -1149,19 +1762,19 @@
         </div>
         <div class="wf-step">
           <span class="wf-num">1</span>
-          <span>客户在系统填订单 → 自动生成图片发给客户</span>
+          <span>拍进货单发微信群，AI 自动入账入库（10 秒）</span>
         </div>
         <div class="wf-step">
           <span class="wf-num">2</span>
-          <span>系统自动记账、归因、算毛利</span>
+          <span>AI 算理论消耗 vs 实际消耗，差异主动告警"牛肉对不上 200 元"</span>
         </div>
         <div class="wf-step">
           <span class="wf-num">3</span>
-          <span>系统每天推送经营日报</span>
+          <span>自建收银系统，菜品销量自动结构化</span>
         </div>
         <div class="wf-step">
           <span class="wf-num">4</span>
-          <span>老板打开手机就知道：哪个产品线赚钱、哪个客户回款慢</span>
+          <span>早 8 点微信推送经营日报，5 秒看完赚没赚</span>
         </div>
       </div>
     </div>
@@ -1279,34 +1892,34 @@
         </div>
       </div>
       <div class="timeline-item r r-d2">
-        <div class="timeline-dot doing"></div>
+        <div class="timeline-dot done"></div>
         <div class="timeline-content">
           <div class="date">DAY 2-4 · 07.04 — 07.06</div>
           <div class="timeline-head">
             <h4>Case 设计 + Demo 搭建</h4>
-            <span class="timeline-status doing"><span class="status-dot"></span>进行中</span>
+            <span class="timeline-status done"><span class="status-dot"></span>已完成</span>
           </div>
           <p>完成虚构 Case 故事 → 设计改造前/后工作流 → 搭建核心流程 → AI 分析输出</p>
         </div>
       </div>
       <div class="timeline-item r r-d3">
-        <div class="timeline-dot" style="background:#b45309;"></div>
+        <div class="timeline-dot done"></div>
         <div class="timeline-content">
           <div class="date">DAY 5-7 · 07.07 — 07.09</div>
           <div class="timeline-head">
             <h4>端到端跑通 + 打磨</h4>
-            <span class="timeline-status todo"><span class="status-dot"></span>未开始</span>
+            <span class="timeline-status done"><span class="status-dot"></span>已完成</span>
           </div>
           <p>完整体验链路 → 叙事包装 → 部署上线</p>
         </div>
       </div>
       <div class="timeline-item r r-d4">
-        <div class="timeline-dot" style="background:#92400e;"></div>
+        <div class="timeline-dot doing"></div>
         <div class="timeline-content">
           <div class="date">DAY 8-9 · 07.10 — 07.11</div>
           <div class="timeline-head">
             <h4>提交冲刺</h4>
-            <span class="timeline-status todo"><span class="status-dot"></span>未开始</span>
+            <span class="timeline-status doing"><span class="status-dot"></span>进行中</span>
           </div>
           <p>录 Demo 视频 → 写提案文档 → TRAE 社区发帖提交</p>
         </div>
@@ -1321,18 +1934,16 @@
     <p class="section-sub r r-d1">基于创始人丰富的 AI Agent 开发经验，快速构建 Linsight 原型。</p>
 
     <div class="stack-grid">
-      <div class="stack-tag r r-d1"><span class="dot"></span>Claude Code</div>
-      <div class="stack-tag r r-d2"><span class="dot"></span>Python</div>
-      <div class="stack-tag r r-d3"><span class="dot"></span>DeepSeek</div>
-      <div class="stack-tag r r-d4"><span class="dot"></span>LangGraph</div>
-      <div class="stack-tag r r-d5"><span class="dot"></span>Claude API</div>
+      <div class="stack-tag r r-d1"><span class="dot"></span>SQLite</div>
+      <div class="stack-tag r r-d2"><span class="dot"></span>node:sqlite</div>
+      <div class="stack-tag r r-d3"><span class="dot"></span>Node.js</div>
+      <div class="stack-tag r r-d4"><span class="dot"></span>Express</div>
+      <div class="stack-tag r r-d5"><span class="dot"></span>TypeScript</div>
       <div class="stack-tag r r-d1"><span class="dot"></span>React</div>
-      <div class="stack-tag r r-d2"><span class="dot"></span>FastAPI</div>
-      <div class="stack-tag r r-d3"><span class="dot"></span>Vercel</div>
-      <div class="stack-tag r r-d4"><span class="dot"></span>飞书 Lark</div>
-      <div class="stack-tag r r-d5"><span class="dot"></span>Firecrawl</div>
-      <div class="stack-tag r r-d1"><span class="dot"></span>Pandas</div>
-      <div class="stack-tag r r-d2"><span class="dot"></span>Playwright</div>
+      <div class="stack-tag r r-d2"><span class="dot"></span>Vite</div>
+      <div class="stack-tag r r-d3"><span class="dot"></span>Tailwind CSS</div>
+      <div class="stack-tag r r-d4"><span class="dot"></span>TRAE Model API</div>
+      <div class="stack-tag r r-d5"><span class="dot"></span>微信 H5</div>
     </div>
   </section>
 
@@ -1435,6 +2046,30 @@
     }, { threshold: 0.1 });
 
     document.querySelectorAll('.r').forEach(el => io.observe(el));
+
+    /* ═══ 老板的一天 · 时间轴控制器 ═══ */
+    (function() {
+      const nodes = document.querySelectorAll('.day-node');
+      const scenes = document.querySelectorAll('.day-scene');
+
+      nodes.forEach(node => {
+        node.addEventListener('click', () => {
+          const target = node.dataset.scene;
+          if (!target) return;
+
+          nodes.forEach(n => {
+            n.classList.remove('active');
+            n.setAttribute('aria-selected', 'false');
+          });
+          node.classList.add('active');
+          node.setAttribute('aria-selected', 'true');
+
+          scenes.forEach(s => s.classList.remove('active'));
+          const sceneEl = document.getElementById(target);
+          if (sceneEl) sceneEl.classList.add('active');
+        });
+      });
+    })();
   </script>
 </body>
 </html>

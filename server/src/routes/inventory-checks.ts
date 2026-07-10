@@ -62,7 +62,7 @@ inventoryChecksRouter.post('/', (req: Request, res: Response<InventoryCheck[]>) 
       SELECT COALESCE(SUM(pi.quantity), 0) as qty
       FROM purchase_items pi
       JOIN purchase_orders po ON pi.order_id = po.id
-      WHERE pi.ingredient_id = ? AND po.status = 'confirmed' AND po.created_at >= ?
+      WHERE pi.ingredient_id = ? AND po.status = 'confirmed' AND DATE(po.created_at) <= ?
     `);
     const purchases = (purchasesStmt.get(item.ingredient_id, check_date) as unknown as { qty: number }).qty;
 
@@ -149,7 +149,7 @@ inventoryChecksRouter.post('/generate', (req: Request, res: Response<InventoryCh
       SELECT COALESCE(SUM(pi.quantity), 0) as qty
       FROM purchase_items pi
       JOIN purchase_orders po ON pi.order_id = po.id
-      WHERE pi.ingredient_id = ? AND po.status = 'confirmed' AND po.created_at >= ?
+      WHERE pi.ingredient_id = ? AND po.status = 'confirmed' AND DATE(po.created_at) <= ?
     `);
     const purchases = (purchasesStmt.get(ingredient.id, date) as unknown as { qty: number }).qty;
 
