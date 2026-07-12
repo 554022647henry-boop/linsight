@@ -18,6 +18,31 @@
 
 ---
 
+## 2026-07-10｜GitHub Pages 部署上线
+
+> 落地页 index.html 部署到 GitHub Pages，评委可通过公网 URL 直接访问。
+
+### 部署结果
+
+- **访问地址**：https://554022647henry-boop.github.io/linsight/
+- **HTTP 验证**：主页 200（65KB HTML），8 张产品截图全部 200（含 [web-loss.png](https://554022647henry-boop.github.io/linsight/assets/screenshots/web-loss.png) 等）
+- **Pages 状态**：built（构建完成），HTTPS 强制开启，源 = main 分支根目录
+
+### 操作记录
+
+1. 本地 master 重命名为 main（与远程默认分支对齐）
+2. force push 覆盖远程 main（远程原 5 个早期 commit 与本地无共同祖先，内容均为本地更新版的子集）
+3. GitHub API 确认 Pages source = `{branch: main, path: /}`，status=built
+4. 清理 remote URL 中内嵌的 token，改回干净的 HTTPS 地址
+
+### 远程仓库
+
+- 仓库：https://github.com/554022647henry-boop/linsight
+- 默认分支：main（最新 commit 437a4f4）
+- 认证方式：HTTPS + Personal Access Token（本地 `D:\Projects\github\.github_token`）
+
+---
+
 ## 2026-07-10｜Day 8 CTO 审查通过 + 统一 commit
 
 > 总指挥官（CTO）对 W1-W9 全部代码改动做逐文件审查，确认质量过关后统一 commit。
